@@ -685,3 +685,156 @@ is the standard way to review pipeline health going forward — no more digging 
 - `Scheduled_Logging`'s `backdate` and `alertsUrl` parameters have **no default value** at all (rather than an explicit empty string). Confirm this behaves as expected on an unattended scheduled trigger run — if ADF requires an explicit value for parameters with no default on trigger-based execution, the trigger definition itself needs to pass `backdate: ""` and the real `alertsUrl` explicitly rather than relying on an implicit default.
 
 ---
+
+# Ingestion_Multitables & Scheduled_Multitables — Multi-Table CDC Load with DB Logging
+
+Extends the single-table `Ingestion_Logging`/`Scheduled_Logging` design to load **any number of tables** from one control-table-driven orchestrator, with no risk of one table's checkpoint clobbering another's — every table's incremental state lives in its own isolated rows in the log table.
+
+## Architecture
+
+```
+Scheduled_Multitables (daily trigger)
+  └─ LookForTables (Lookup: active tables from source.table_config)
+       └─ ForEachTable (parallel, batchCount 4)
+             └─ Execute Pipeline 3 ──▶ Ingestion_Multitables
+                    ├─ On Success: done
+                    └─ On Failure ─┬─▶ Alerts   (Web → Logic App email)
+                                   └─▶ LogFailure (marks that table's run row Failed)
+
+Ingestion_Multitables:
+  last_cdc ──▶ LogStart ──▶ Totalresults ──▶ If New Rows
+                                                 ├─ True  ─▶ Load ─▶ LogSuccess
+                                                 └─ False ─▶ LogNoOp
+```
+
+---
+
+## Supporting SQL objects
+
+**Control table** — the list of tables to process each run:
+```sql
+CREATE TABLE source.table_config (
+    config_id     INT IDENTITY(1,1) PRIMARY KEY,
+    schema_name   VARCHAR(100) NOT NULL,
+    table_name    VARCHAR(100) NOT NULL,
+    is_active     BIT NOT NULL DEFAULT 1
+);
+```
+Adding or removing a table from the nightly load is just an `INSERT`/`UPDATE` here — no pipeline redeploy needed.
+
+**Run log** — one row per pipeline attempt, per table:
+```sql
+CREATE TABLE source.pipeline_run_log (
+    log_id            INT IDENTITY(1,1) PRIMARY KEY,
+    pipeline_name     VARCHAR(200) NOT NULL,
+    run_id            VARCHAR(100) NOT NULL,
+    schema_name       VARCHAR(100) NOT NULL,
+    table_name        VARCHAR(100) NOT NULL,
+    start_time        DATETIME2 NOT NULL,
+    end_time          DATETIME2 NULL,
+    status            VARCHAR(20) NOT NULL,      -- 'Started' / 'Succeeded' / 'Failed'
+    cdc_timestamp     DATETIME2 NULL,             -- checkpoint used INTO this run
+    new_cdc_timestamp DATETIME2 NULL,             -- checkpoint coming OUT of this run
+    rows_processed    INT NULL,
+    error_message     VARCHAR(MAX) NULL
+);
+
+CREATE INDEX ix_pipeline_run_log_lookup
+    ON source.pipeline_run_log (table_name, schema_name, status);
+```
+
+---
+
+## Pipeline: `Ingestion_Multitables`
+
+Unchanged in shape from the single-table version — parameterized so the *same* pipeline handles every table, one call per table.
+
+| Parameter | Default | Purpose |
+|---|---|---|
+| `schema_name` | `source` | which schema to load from |
+| `table_name` | *(none)* | which table to load — supplied per call by the orchestrator |
+| `backdate` | *(none)* | manual override date; blank = trust the log table's checkpoint |
+
+<img width="1237" height="397" alt="Ingestion_Multitables" src="https://github.com/user-attachments/assets/6059b3db-2afb-4173-9db6-3a552b5af06c" />
+
+1. **`last_cdc`** (Lookup) — `SELECT COALESCE(MAX(new_cdc_timestamp), '1900-01-01') ... WHERE table_name = @{table_name} AND schema_name = @{schema_name} AND status = 'Succeeded'`. Self-seeding: a table with no run history yet automatically starts from `1900-01-01` — no manual seed row required per table.
+2. **`LogStart`** — inserts a `Started` row for this run, capturing the checkpoint it's using, scoped to this exact `schema_name`/`table_name` pair.
+3. **`Totalresults`** — `SELECT count(*) as total_count FROM ... WHERE last_updated > <checkpoint>`. (The `as total_count` alias matters — `If New Rows` and `LogSuccess` both bind to that column name directly.)
+4. **`If New Rows`**:
+   - **True** → `Load` (Copy, SQL → Parquet) → `LogSuccess` (updates the row: `Succeeded`, new high-water mark via `MAX(last_updated)`, `rows_processed` from `Totalresults`)
+   - **False** → `LogNoOp` (updates the row: `Succeeded`, `rows_processed = 0`, checkpoint held steady)
+
+Because every read/write here is scoped by `table_name` + `schema_name`, running this pipeline for `Orders` never touches, reads, or overwrites `Customers`' checkpoint history (or vice versa) — each table accumulates its own independent lineage of rows in `pipeline_run_log`.
+
+---
+
+## Pipeline: `Scheduled_Multitables`
+
+| Parameter | Default | Purpose |
+|---|---|---|
+| `schema_name` | `source` | schema passed through to every table's `Ingestion_Multitables` call |
+| `backdate` | *(none)* | forwarded to every table; leave blank for scheduled runs |
+| `alertsUrl` | *(none)* | Logic App trigger URL, supplied at trigger/deployment time — never hardcoded |
+
+<img width="807" height="336" alt="Scheduled_Multitables" src="https://github.com/user-attachments/assets/fd860665-c53b-47ac-89ea-9be2e609c303" />
+
+<img width="647" height="382" alt="ForEachTable" src="https://github.com/user-attachments/assets/8ea86c19-768e-437e-97e0-d8bf378a4525" />
+
+### 1. `LookForTables` (Lookup)
+```sql
+SELECT table_name FROM @{pipeline().parameters.schema_name}.table_config WHERE is_active = 1
+```
+`firstRowOnly: false` — returns the full active table list.
+
+### 2. `ForEachTable` (ForEach)
+- **Items**: `@activity('LookForTables').output.value`
+- **`isSequential: false`**, **`batchCount: 4`** — up to 4 tables load concurrently. Since every table's checkpoint read/write is independently scoped (see above), running several tables in parallel is safe; it just speeds up the nightly load.
+
+Inside each iteration:
+
+**`Execute Pipeline 3`** → `Ingestion_Multitables`, with:
+- `schema_name = @pipeline().parameters.schema_name`
+- `table_name = @item().table_name`
+- `backdate = @pipeline().parameters.backdate`
+
+**`Alerts`** (Web, fires on `Execute Pipeline 3` **Failed**):
+- URL: `@pipeline().parameters.alertsUrl` (never a hardcoded SAS URL in the JSON)
+- Body:
+  ```json
+  {
+      "pipeline_name": "@{pipeline().Pipeline}",
+      "run_id": "@{activity('Execute Pipeline 3').output.pipelineRunId}",
+      "schema_name": "@{pipeline().parameters.schema_name}",
+      "table_name": "@{item().table_name}"
+  }
+  ```
+  Two details that matter here: the JSON keys (`schema_name`, `table_name`) must match the Logic App trigger's schema exactly, or those fields render blank in the email even though the request succeeds; and `run_id` uses `activity('Execute Pipeline 3').output.pipelineRunId` — the **child** `Ingestion_Multitables` run's own ID — rather than the parent orchestrator's `pipeline().RunId`, so the value in the email actually matches the `run_id` stored in `pipeline_run_log` for that failure and can be looked up directly.
+
+**`LogFailure`** (Script, fires on `Execute Pipeline 3` **Failed**, in **parallel** with `Alerts` — not chained after it):
+```sql
+UPDATE source.pipeline_run_log
+SET status = 'Failed', end_time = SYSUTCDATETIME(),
+    error_message = '@{activity('Execute Pipeline 3').Error.Message}'
+WHERE run_id = '@{activity('Execute Pipeline 3').output.pipelineRunId}'
+```
+Running independently of `Alerts` is deliberate: if the alert email itself fails to send (bad URL, Logic App outage), the log row still gets correctly closed out as `Failed` rather than staying stuck at `Started` forever.
+
+---
+
+## Why multi-table doesn't cause cross-table data loss
+
+Every checkpoint read (`last_cdc`) and write (`LogStart`, `LogSuccess`, `LogNoOp`) filters explicitly on `table_name` + `schema_name`. Adding a 3rd, 10th, or 50th table to `table_config` never touches existing rows for other tables — each one just gets its own new rows in `pipeline_run_log`. The only real risk is the **same table** being run twice concurrently (e.g. a manual backfill overlapping the scheduled run) — that's a concurrency concern to manage via the orchestrator's Concurrency setting or an in-pipeline "already running" guard, not something the multi-table design itself introduces.
+
+## Verifying it end to end
+```sql
+SELECT * FROM source.pipeline_run_log ORDER BY log_id DESC;
+```
+After a run, confirm:
+- One row per active table in `table_config`, each closing out `Succeeded` or `Failed` independently.
+- `rows_processed` and `new_cdc_timestamp` populated correctly per table.
+- A forced failure on one table produces a `Failed` row **and** a correctly-detailed alert email (with `schema_name`/`table_name` populated, not blank), while every other table in the same run still completes normally.
+
+## Notes
+- Add a new table to load nightly by inserting a row into `source.table_config` — no ADF changes needed.
+- To pause a table without removing it, set `is_active = 0` in `table_config` rather than deleting its row (keeps its history intact in `pipeline_run_log`).
+- If tables ever need to span multiple schemas in a single run, `LookForTables` would need to also select `schema_name` per row (instead of relying on the single top-level `schema_name` parameter) and `Execute Pipeline 3` would map `schema_name = @item().schema_name`.

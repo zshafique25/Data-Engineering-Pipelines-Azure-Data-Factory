@@ -22,6 +22,10 @@
 					"value": "@dataset().ds_source_filename",
 					"type": "Expression"
 				},
+				"folderPath": {
+					"value": "@dataset().ds_source_foldername",
+					"type": "Expression"
+				},
 				"fileSystem": "source"
 			},
 			"columnDelimiter": ",",

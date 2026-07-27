@@ -20,6 +20,15 @@
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
 							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@pipeline().parameters.windowstartertime",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@pipeline().parameters.windowendtime",
+								"type": "Expression"
+							},
+							"wildcardFileName": "*",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -61,6 +70,14 @@
 				]
 			}
 		],
+		"parameters": {
+			"windowstartertime": {
+				"type": "string"
+			},
+			"windowendtime": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }

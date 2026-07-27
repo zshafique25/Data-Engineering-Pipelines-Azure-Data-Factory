@@ -9,11 +9,11 @@
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
+			"defaultValue": "@triggeroutputs().windowstartertime"
 		},
 		"trigger2_properties_pipeline_parameters_windowendtime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
+			"defaultValue": "@triggeroutputs().windowendtime"
 		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"type": "string",
@@ -1196,7 +1196,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipeline": {
 					"pipelineReference": {
 						"referenceName": "tumbling_window_data",

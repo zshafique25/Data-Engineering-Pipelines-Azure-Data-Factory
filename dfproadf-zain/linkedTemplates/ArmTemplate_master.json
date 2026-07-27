@@ -49,11 +49,11 @@
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
+			"defaultValue": "@triggeroutputs().windowstartertime"
 		},
 		"trigger2_properties_pipeline_parameters_windowendtime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
+			"defaultValue": "@triggeroutputs().windowendtime"
 		},
 		"containerUri": {
 			"type": "string",

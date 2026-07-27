@@ -49,11 +49,11 @@
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
+			"defaultValue": "@triggeroutputs().windowstartertime"
 		},
 		"trigger2_properties_pipeline_parameters_windowendtime": {
 			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
+			"defaultValue": "@triggeroutputs().windowendtime"
 		}
 	},
 	"variables": {
@@ -2985,96 +2985,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/schedule')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Scheduled",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"schema": "[parameters('schedule_properties_Scheduled_parameters_schema')]",
-							"table": "[parameters('schedule_properties_Scheduled_parameters_table')]"
-						}
-					},
-					{
-						"pipelineReference": {
-							"referenceName": "Scheduled_Multitables",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"schema_name": "[parameters('schedule_properties_Scheduled_Multitables_parameters_schema_name')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2026-07-27T15:15:00",
-						"timeZone": "Pakistan Standard Time",
-						"schedule": {
-							"minutes": [
-								18,
-								21,
-								26,
-								40
-							],
-							"hours": [
-								15
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Scheduled')]",
-				"[concat(variables('factoryId'), '/pipelines/Scheduled_Multitables')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/trigger2')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "tumbling_window_data",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"windowstartertime": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]",
-						"windowendtime": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Minute",
-					"interval": 5,
-					"startTime": "2026-07-27T12:16:00Z",
-					"endTime": "2026-07-28T12:50:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"count": 1,
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/tumbling_window_data')]"
-			]
-		},
-		{
 			"name": "[concat(parameters('factoryName'), '/deltaflow')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
@@ -3159,6 +3069,96 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_csv_dynamic')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/schedule')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "Scheduled",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"schema": "[parameters('schedule_properties_Scheduled_parameters_schema')]",
+							"table": "[parameters('schedule_properties_Scheduled_parameters_table')]"
+						}
+					},
+					{
+						"pipelineReference": {
+							"referenceName": "Scheduled_Multitables",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"schema_name": "[parameters('schedule_properties_Scheduled_Multitables_parameters_schema_name')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-07-27T15:15:00",
+						"timeZone": "Pakistan Standard Time",
+						"schedule": {
+							"minutes": [
+								18,
+								21,
+								26,
+								40
+							],
+							"hours": [
+								15
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Scheduled')]",
+				"[concat(variables('factoryId'), '/pipelines/Scheduled_Multitables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger2')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "tumbling_window_data",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"windowstartertime": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]",
+						"windowendtime": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Minute",
+					"interval": 5,
+					"startTime": "2026-07-27T12:16:00Z",
+					"endTime": "2026-07-28T12:50:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"count": 1,
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/tumbling_window_data')]"
 			]
 		}
 	]

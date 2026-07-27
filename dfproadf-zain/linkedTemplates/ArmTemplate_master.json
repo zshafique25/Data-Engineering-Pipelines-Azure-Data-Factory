@@ -55,6 +55,18 @@
 			"type": "string",
 			"defaultValue": "@triggeroutputs().windowendtime"
 		},
+		"trigger_events_properties_Event_trigger_parameters_pl_param_foldername": {
+			"type": "string",
+			"defaultValue": "@triggerBody().folderPath"
+		},
+		"trigger_events_properties_Event_trigger_parameters_pl_param_filename": {
+			"type": "string",
+			"defaultValue": "@triggerBody().fileName"
+		},
+		"trigger_events_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -126,6 +138,15 @@
 					},
 					"trigger2_properties_pipeline_parameters_windowendtime": {
 						"value": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
+					},
+					"trigger_events_properties_Event_trigger_parameters_pl_param_foldername": {
+						"value": "[parameters('trigger_events_properties_Event_trigger_parameters_pl_param_foldername')]"
+					},
+					"trigger_events_properties_Event_trigger_parameters_pl_param_filename": {
+						"value": "[parameters('trigger_events_properties_Event_trigger_parameters_pl_param_filename')]"
+					},
+					"trigger_events_properties_typeProperties_scope": {
+						"value": "[parameters('trigger_events_properties_typeProperties_scope')]"
 					},
 					"schedule_properties_Scheduled_parameters_schema": {
 						"value": "[parameters('schedule_properties_Scheduled_parameters_schema')]"

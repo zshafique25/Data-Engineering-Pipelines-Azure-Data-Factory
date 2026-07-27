@@ -40,6 +40,15 @@
 		},
 		"trigger2_properties_pipeline_parameters_windowendtime": {
 			"value": "@triggeroutputs().windowendtime"
+		},
+		"trigger_events_properties_Event_trigger_parameters_pl_param_foldername": {
+			"value": "@triggerBody().folderPath"
+		},
+		"trigger_events_properties_Event_trigger_parameters_pl_param_filename": {
+			"value": "@triggerBody().fileName"
+		},
+		"trigger_events_properties_typeProperties_scope": {
+			"value": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
 		}
 	}
 }

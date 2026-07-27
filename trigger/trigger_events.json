@@ -1,0 +1,29 @@
+{
+	"name": "trigger_events",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Event_trigger",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"pl_param_foldername": "@triggerBody().folderPath",
+					"pl_param_filename": "@triggerBody().fileName"
+				}
+			}
+		],
+		"type": "BlobEventsTrigger",
+		"typeProperties": {
+			"blobPathBeginsWith": "/customers/blobs/",
+			"blobPathEndsWith": ".csv",
+			"ignoreEmptyBlobs": true,
+			"scope": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage",
+			"events": [
+				"Microsoft.Storage.BlobCreated"
+			]
+		}
+	}
+}

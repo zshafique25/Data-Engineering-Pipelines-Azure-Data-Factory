@@ -1,0 +1,38 @@
+{
+	"name": "ds_sink_csv",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_datalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_sink_foldername": {
+				"type": "string"
+			},
+			"ds_sink_filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().ds_sink_filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().ds_sink_foldername",
+					"type": "Expression"
+				},
+				"fileSystem": "sink"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

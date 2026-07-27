@@ -66,7 +66,17 @@
 				"outputs": [
 					{
 						"referenceName": "ds_sink_csv",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_sink_foldername": {
+								"value": "@pipeline().parameters.pl_param_foldername",
+								"type": "Expression"
+							},
+							"ds_sink_filename": {
+								"value": "@pipeline().parameters.pl_param_filename",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}

@@ -50,7 +50,17 @@
 				"inputs": [
 					{
 						"referenceName": "ds_source_csv",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_source_foldername": {
+								"value": "@pipeline().parameters.pl_param_foldername",
+								"type": "Expression"
+							},
+							"ds_source_filename": {
+								"value": "@pipeline().parameters.pl_param_filename",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [

@@ -260,6 +260,34 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_dest_files')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "files",
+						"fileSystem": "sink"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_emptyjson')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -281,6 +309,67 @@
 				"schema": {
 					"type": "object"
 				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_files')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "files",
+						"fileSystem": "source"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "customer_id",
+						"type": "String"
+					},
+					{
+						"name": "first_name",
+						"type": "String"
+					},
+					{
+						"name": "last_name",
+						"type": "String"
+					},
+					{
+						"name": "email",
+						"type": "String"
+					},
+					{
+						"name": "phone_number",
+						"type": "String"
+					},
+					{
+						"name": "city",
+						"type": "String"
+					},
+					{
+						"name": "signup_date",
+						"type": "String"
+					},
+					{
+						"name": "last_updated_timestamp",
+						"type": "String"
+					}
+				]
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
@@ -1784,622 +1873,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_meta')]",
 				"[concat(variables('factoryId'), '/datasets/ds_csv_dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Schema')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "ds_meta",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobFSReadSettings",
-								"recursive": true,
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					},
-					{
-						"name": "ForEachFile",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Get Metadata",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Get Metadata').output.childItems",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "Data Load",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "DelimitedTextSource",
-											"storeSettings": {
-												"type": "AzureBlobFSReadSettings",
-												"recursive": true,
-												"enablePartitionDiscovery": false
-											},
-											"formatSettings": {
-												"type": "DelimitedTextReadSettings"
-											}
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobFSWriteSettings"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"value": "@if(equals(item().name,'customers.csv'),pipeline().parameters.customers_schema,if(equals(item().name,'drivers.csv'),pipeline().parameters.drivers_schema,pipeline().parameters.trips_schema))",
-											"type": "Expression"
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "ds_csv_dynamic",
-											"type": "DatasetReference",
-											"parameters": {
-												"p_container": "source",
-												"p_folder": "files",
-												"p_file": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "ds_csv_dynamic",
-											"type": "DatasetReference",
-											"parameters": {
-												"p_container": "sink",
-												"p_folder": "schema",
-												"p_file": {
-													"value": "@item().name",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"customers_schema": {
-						"type": "object",
-						"defaultValue": {
-							"type": "TabularTranslator",
-							"mappings": [
-								{
-									"source": {
-										"name": "customer_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "customer_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "first_name",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "first_name",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "last_name",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "last_name",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "email",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "email",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "phone_number",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "phone_number",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "city",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "city",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "signup_date",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "signup_date",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									}
-								}
-							],
-							"typeConversion": true,
-							"typeConversionSettings": {
-								"allowDataTruncation": true,
-								"treatBooleanAsNumber": false
-							}
-						}
-					},
-					"drivers_schema": {
-						"type": "object",
-						"defaultValue": {
-							"type": "TabularTranslator",
-							"mappings": [
-								{
-									"source": {
-										"name": "driver_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "driver_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "first_name",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "first_name",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "last_name",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "last_name",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "phone_number",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "phone_number",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "vehicle_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "vehicle_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "driver_rating",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "driver_rating",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "city",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "city",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									}
-								}
-							],
-							"typeConversion": true,
-							"typeConversionSettings": {
-								"allowDataTruncation": true,
-								"treatBooleanAsNumber": false
-							}
-						}
-					},
-					"trips_schema": {
-						"type": "object",
-						"defaultValue": {
-							"type": "TabularTranslator",
-							"mappings": [
-								{
-									"source": {
-										"name": "trip_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "trip_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "driver_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "driver_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "customer_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "customer_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "vehicle_id",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "vehicle_id",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "trip_start_time",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "trip_start_time",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "trip_end_time",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "trip_end_time",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "start_location",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "start_location",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "end_location",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "end_location",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "distance_km",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "distance_km",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "fare_amount",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "fare_amount",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "payment_method",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "payment_method",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "trip_status",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "trip_status",
-										"type": "String",
-										"physicalType": "String"
-									}
-								},
-								{
-									"source": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									},
-									"sink": {
-										"name": "last_updated_timestamp",
-										"type": "String",
-										"physicalType": "String"
-									}
-								}
-							],
-							"typeConversion": true,
-							"typeConversionSettings": {
-								"allowDataTruncation": true,
-								"treatBooleanAsNumber": false
-							}
-						}
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2026-07-21T11:29:11Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_meta')]",
-				"[concat(variables('factoryId'), '/datasets/ds_csv_dynamic')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/deltaflow')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_csv_dynamic",
-								"type": "DatasetReference"
-							},
-							"name": "source"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "ls_datalake",
-								"type": "LinkedServiceReference"
-							},
-							"name": "sinkDelta"
-						}
-					],
-					"transformations": [
-						{
-							"name": "UpperState"
-						},
-						{
-							"name": "selectCols"
-						},
-						{
-							"name": "alterRow"
-						}
-					],
-					"scriptLines": [
-						"source(output(",
-						"          location_id as short,",
-						"          city as string,",
-						"          state as string,",
-						"          country as string,",
-						"          latitude as double,",
-						"          longitude as double,",
-						"          last_updated_timestamp as timestamp",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source",
-						"source derive(state = upper(state)) ~> UpperState",
-						"UpperState select(mapColumn(",
-						"          location_id,",
-						"          city,",
-						"          state,",
-						"          country,",
-						"          last_updated_timestamp",
-						"     ),",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> selectCols",
-						"selectCols alterRow(upsertIf(1==1)) ~> alterRow",
-						"alterRow sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'delta',",
-						"     fileSystem: 'sink',",
-						"     folderPath: 'deltasink',",
-						"     mergeSchema: false,",
-						"     autoCompact: false,",
-						"     optimizedWrite: false,",
-						"     vacuum: 0,",
-						"     deletable: false,",
-						"     insertable: true,",
-						"     updateable: false,",
-						"     upsertable: true,",
-						"     keys:['location_id'],",
-						"     umask: 0022,",
-						"     preCommands: [],",
-						"     postCommands: [],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sinkDelta"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_csv_dynamic')]",
-				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
 			]
 		}
 	]

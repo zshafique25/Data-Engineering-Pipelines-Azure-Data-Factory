@@ -2,7 +2,7 @@
 	"name": "schedule",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipelines": [
 			{
 				"pipelineReference": {
@@ -13,6 +13,12 @@
 					"schema": "source",
 					"table": "Orders"
 				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "Scheduled_Multitables",
+					"type": "PipelineReference"
+				}
 			}
 		],
 		"type": "ScheduleTrigger",
@@ -20,8 +26,16 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2026-07-20T08:01:00",
-				"timeZone": "Pakistan Standard Time"
+				"startTime": "2026-07-27T15:15:00",
+				"timeZone": "Pakistan Standard Time",
+				"schedule": {
+					"minutes": [
+						18
+					],
+					"hours": [
+						15
+					]
+				}
 			}
 		}
 	}

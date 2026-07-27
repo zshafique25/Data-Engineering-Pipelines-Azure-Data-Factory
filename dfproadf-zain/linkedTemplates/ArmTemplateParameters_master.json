@@ -36,10 +36,10 @@
 			"value": "source"
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
-			"value": "@triggeroutputs().windowstartertime"
+			"value": "@trigger().outputs.windowStartTime"
 		},
 		"trigger2_properties_pipeline_parameters_windowendtime": {
-			"value": "@triggeroutputs().windowendtime"
+			"value": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"value": ""

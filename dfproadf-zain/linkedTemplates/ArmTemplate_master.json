@@ -47,6 +47,14 @@
 			"type": "string",
 			"defaultValue": "source"
 		},
+		"trigger2_properties_pipeline_parameters_windowstartertime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowstartertime"
+		},
+		"trigger2_properties_pipeline_parameters_windowendtime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowendtime"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -112,6 +120,12 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"trigger2_properties_pipeline_parameters_windowstartertime": {
+						"value": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]"
+					},
+					"trigger2_properties_pipeline_parameters_windowendtime": {
+						"value": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
 					},
 					"schedule_properties_Scheduled_parameters_schema": {
 						"value": "[parameters('schedule_properties_Scheduled_parameters_schema')]"

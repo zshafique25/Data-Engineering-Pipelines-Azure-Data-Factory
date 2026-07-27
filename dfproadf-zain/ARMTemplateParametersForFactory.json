@@ -34,6 +34,12 @@
 		},
 		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
 			"value": "source"
+		},
+		"trigger2_properties_pipeline_parameters_windowstartertime": {
+			"value": "@triggeroutputs().windowstartertime"
+		},
+		"trigger2_properties_pipeline_parameters_windowendtime": {
+			"value": "@triggeroutputs().windowendtime"
 		}
 	}
 }

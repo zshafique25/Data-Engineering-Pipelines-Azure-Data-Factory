@@ -7,6 +7,14 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "dfproadf-zain"
 		},
+		"trigger2_properties_pipeline_parameters_windowstartertime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowstartertime"
+		},
+		"trigger2_properties_pipeline_parameters_windowendtime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowendtime"
+		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"type": "string",
 			"defaultValue": "source"
@@ -1194,7 +1202,10 @@
 						"referenceName": "tumbling_window_data",
 						"type": "PipelineReference"
 					},
-					"parameters": {}
+					"parameters": {
+						"windowstartertime": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]",
+						"windowendtime": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
+					}
 				},
 				"type": "TumblingWindowTrigger",
 				"typeProperties": {

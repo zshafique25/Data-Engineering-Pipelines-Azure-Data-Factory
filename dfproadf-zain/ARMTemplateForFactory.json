@@ -46,6 +46,14 @@
 		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
 			"type": "string",
 			"defaultValue": "source"
+		},
+		"trigger2_properties_pipeline_parameters_windowstartertime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowstartertime"
+		},
+		"trigger2_properties_pipeline_parameters_windowendtime": {
+			"type": "string",
+			"defaultValue": "@triggeroutputs().windowendtime"
 		}
 	},
 	"variables": {
@@ -3042,7 +3050,10 @@
 						"referenceName": "tumbling_window_data",
 						"type": "PipelineReference"
 					},
-					"parameters": {}
+					"parameters": {
+						"windowstartertime": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]",
+						"windowendtime": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
+					}
 				},
 				"type": "TumblingWindowTrigger",
 				"typeProperties": {

@@ -31,6 +31,9 @@
 		},
 		"schedule_properties_Scheduled_parameters_table": {
 			"value": "Orders"
+		},
+		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
+			"value": "source"
 		}
 	}
 }

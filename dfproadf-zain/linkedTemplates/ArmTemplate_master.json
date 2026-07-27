@@ -43,6 +43,10 @@
 			"type": "string",
 			"defaultValue": "Orders"
 		},
+		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
+			"type": "string",
+			"defaultValue": "source"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -114,6 +118,9 @@
 					},
 					"schedule_properties_Scheduled_parameters_table": {
 						"value": "[parameters('schedule_properties_Scheduled_parameters_table')]"
+					},
+					"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
+						"value": "[parameters('schedule_properties_Scheduled_Multitables_parameters_schema_name')]"
 					}
 				}
 			},

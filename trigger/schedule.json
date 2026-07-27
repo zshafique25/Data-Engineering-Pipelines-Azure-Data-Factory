@@ -18,6 +18,9 @@
 				"pipelineReference": {
 					"referenceName": "Scheduled_Multitables",
 					"type": "PipelineReference"
+				},
+				"parameters": {
+					"schema_name": "source"
 				}
 			}
 		],
@@ -30,7 +33,8 @@
 				"timeZone": "Pakistan Standard Time",
 				"schedule": {
 					"minutes": [
-						18
+						18,
+						21
 					],
 					"hours": [
 						15

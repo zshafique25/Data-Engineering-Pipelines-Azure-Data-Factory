@@ -9,8 +9,8 @@
 				"type": "PipelineReference"
 			},
 			"parameters": {
-				"windowstartertime": "@triggeroutputs().windowstartertime",
-				"windowendtime": "@triggeroutputs().windowendtime"
+				"windowstartertime": "@trigger().outputs.windowStartTime",
+				"windowendtime": "@trigger().outputs.windowEndTime"
 			}
 		},
 		"type": "TumblingWindowTrigger",

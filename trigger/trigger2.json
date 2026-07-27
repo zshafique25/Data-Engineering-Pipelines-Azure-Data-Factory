@@ -7,6 +7,10 @@
 			"pipelineReference": {
 				"referenceName": "tumbling_window_data",
 				"type": "PipelineReference"
+			},
+			"parameters": {
+				"windowstartertime": "@triggeroutputs().windowstartertime",
+				"windowendtime": "@triggeroutputs().windowendtime"
 			}
 		},
 		"type": "TumblingWindowTrigger",

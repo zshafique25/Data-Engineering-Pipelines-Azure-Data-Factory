@@ -6,44 +6,33 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "dfproadf-zain"
-		},
-		"trigger2_properties_pipeline_parameters_windowstartertime": {
-			"type": "string",
-			"defaultValue": "@triggeroutputs().windowstartertime"
-		},
-		"trigger2_properties_pipeline_parameters_windowendtime": {
-			"type": "string",
-			"defaultValue": "@triggeroutputs().windowendtime"
-		},
-		"trigger_events_properties_Event_trigger_parameters_pl_param_foldername": {
-			"type": "string",
-			"defaultValue": "@triggerBody().folderPath"
-		},
-		"trigger_events_properties_Event_trigger_parameters_pl_param_filename": {
-			"type": "string",
-			"defaultValue": "@triggerBody().fileName"
-		},
-		"trigger_events_properties_typeProperties_scope": {
-			"type": "string",
-			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
-		},
-		"schedule_properties_Scheduled_parameters_schema": {
-			"type": "string",
-			"defaultValue": "source"
-		},
-		"schedule_properties_Scheduled_parameters_table": {
-			"type": "string",
-			"defaultValue": "Orders"
-		},
-		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
-			"type": "string",
-			"defaultValue": "source"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_http_orders')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_http",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "HttpServerLocation",
+						"relativeUrl": "zshafique25/Adventure-Works-Data-Engineering-Project/refs/heads/master/Orders/orders.json"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
@@ -101,6 +90,56 @@
 					"schema": "source",
 					"table": "staging_orders"
 				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_news')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_rest_api",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "search?engine=google_news&q=latest+news&gl=pk&api_key=f4oCuq2y3HPyeE1B8wJdGum1\n",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('search_results_', formatDateTime(utcNow(), 'YYYYMMdd_HHmmss'), '.json')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('searchapi/google/latest-news/', formatDateTime(utcNow(),'yyyy/MM/dd'))",
+							"type": "Expression"
+						},
+						"fileSystem": "raw-data"
+					}
+				},
+				"schema": {}
 			},
 			"dependsOn": []
 		},
@@ -2495,7 +2534,73 @@
 				"annotations": []
 			},
 			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_http_orders')]",
 				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Rest_api_news')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_rest_news",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_rest_json",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_rest_news')]",
+				"[concat(variables('factoryId'), '/datasets/ds_rest_json')]"
 			]
 		},
 		{
@@ -2776,313 +2881,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/Ingestion_Logging')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Scheduled_Multitables')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "LookForTables",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "SELECT table_name FROM @{pipeline().parameters.schema_name}.table_config where is_active = 1",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "ds_database",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEachTable",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "LookForTables",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('LookForTables').output.value",
-								"type": "Expression"
-							},
-							"isSequential": false,
-							"batchCount": 4,
-							"activities": [
-								{
-									"name": "Execute Pipeline 3",
-									"type": "ExecutePipeline",
-									"dependsOn": [],
-									"policy": {
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"pipeline": {
-											"referenceName": "Ingestion_Multitables",
-											"type": "PipelineReference"
-										},
-										"waitOnCompletion": true,
-										"parameters": {
-											"schema_name": {
-												"value": "@pipeline().parameters.schema_name",
-												"type": "Expression"
-											},
-											"backdate": {
-												"value": "@pipeline().parameters.backdate",
-												"type": "Expression"
-											},
-											"table_name": {
-												"value": "@item().table_name",
-												"type": "Expression"
-											}
-										}
-									}
-								},
-								{
-									"name": "Alerts",
-									"type": "WebActivity",
-									"dependsOn": [
-										{
-											"activity": "Execute Pipeline 3",
-											"dependencyConditions": [
-												"Failed"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": true
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"method": "POST",
-										"headers": {},
-										"url": {
-											"value": "@pipeline().parameters.alertsUrl",
-											"type": "Expression"
-										},
-										"body": {
-											"value": "{\n    \"pipeline_name\" : \"@{pipeline().Pipeline}\",\n    \"run_id\" : \"@{activity('Execute Pipeline 3').output.pipelineRunId}\",\n    \"schema_name\" : \"@{pipeline().parameters.schema_name}\",\n    \"table_name\" : \"@{item().table_name}\"\n}",
-											"type": "Expression"
-										}
-									}
-								},
-								{
-									"name": "LogFailure",
-									"type": "Script",
-									"dependsOn": [
-										{
-											"activity": "Execute Pipeline 3",
-											"dependencyConditions": [
-												"Failed"
-											]
-										}
-									],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"linkedServiceName": {
-										"referenceName": "ls_database",
-										"type": "LinkedServiceReference"
-									},
-									"typeProperties": {
-										"scripts": [
-											{
-												"type": "Query",
-												"text": {
-													"value": "UPDATE source.pipeline_run_log\nSET status = 'Failed',\n    end_time = SYSUTCDATETIME(),\n    error_message = '@{activity('Execute Pipeline 3').Error.Message}'\nWHERE run_id = '@{activity('Execute Pipeline 3').output.pipelineRunId}'\n",
-													"type": "Expression"
-												}
-											}
-										],
-										"scriptBlockExecutionTimeout": "02:00:00"
-									}
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"schema_name": {
-						"type": "string",
-						"defaultValue": "source"
-					},
-					"backdate": {
-						"type": "string"
-					},
-					"alertsUrl": {
-						"type": "string"
-					},
-					"table_name": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2026-07-20T08:17:57Z"
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Ingestion_Multitables')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/trigger2')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "tumbling_window_data",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"windowstartertime": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]",
-						"windowendtime": "[parameters('trigger2_properties_pipeline_parameters_windowendtime')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Minute",
-					"interval": 5,
-					"startTime": "2026-07-27T12:16:00Z",
-					"endTime": "2026-07-28T12:50:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"count": 1,
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/tumbling_window_data')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/trigger_events')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Event_trigger",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"pl_param_foldername": "[parameters('trigger_events_properties_Event_trigger_parameters_pl_param_foldername')]",
-							"pl_param_filename": "[parameters('trigger_events_properties_Event_trigger_parameters_pl_param_filename')]"
-						}
-					}
-				],
-				"type": "BlobEventsTrigger",
-				"typeProperties": {
-					"blobPathBeginsWith": "/customers/blobs/",
-					"blobPathEndsWith": ".csv",
-					"ignoreEmptyBlobs": true,
-					"scope": "[parameters('trigger_events_properties_typeProperties_scope')]",
-					"events": [
-						"Microsoft.Storage.BlobCreated"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Event_trigger')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/schedule')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "Scheduled",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"schema": "[parameters('schedule_properties_Scheduled_parameters_schema')]",
-							"table": "[parameters('schedule_properties_Scheduled_parameters_table')]"
-						}
-					},
-					{
-						"pipelineReference": {
-							"referenceName": "Scheduled_Multitables",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"schema_name": "[parameters('schedule_properties_Scheduled_Multitables_parameters_schema_name')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2026-07-27T15:15:00",
-						"timeZone": "Pakistan Standard Time",
-						"schedule": {
-							"minutes": [
-								18,
-								21,
-								26,
-								40
-							],
-							"hours": [
-								15
-							]
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Scheduled')]",
-				"[concat(variables('factoryId'), '/pipelines/Scheduled_Multitables')]"
 			]
 		}
 	]

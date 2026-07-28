@@ -52,6 +52,9 @@
 		},
 		"ls_http_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/"
+		},
+		"ls_rest_api_properties_typeProperties_url": {
+			"value": "https://www.searchapi.io/api/v1"
 		}
 	}
 }

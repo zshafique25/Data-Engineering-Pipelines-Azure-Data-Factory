@@ -48,10 +48,6 @@
 				"type": "datetime2",
 				"scale": 7
 			}
-		],
-		"typeProperties": {
-			"schema": "target",
-			"table": "Orders"
-		}
+		]
 	}
 }

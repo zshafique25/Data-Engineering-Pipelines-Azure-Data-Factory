@@ -50,6 +50,9 @@
 		"trigger_events_properties_typeProperties_scope": {
 			"value": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
 		},
+		"ls_http_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
+		},
 		"containerUri": {
 			"value": ""
 		},

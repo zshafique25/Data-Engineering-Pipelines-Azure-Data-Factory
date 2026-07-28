@@ -67,6 +67,10 @@
 			"type": "string",
 			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
 		},
+		"ls_http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -114,6 +118,9 @@
 					},
 					"ls_datalake_properties_typeProperties_url": {
 						"value": "[parameters('ls_datalake_properties_typeProperties_url')]"
+					},
+					"ls_http_properties_typeProperties_url": {
+						"value": "[parameters('ls_http_properties_typeProperties_url')]"
 					}
 				}
 			},

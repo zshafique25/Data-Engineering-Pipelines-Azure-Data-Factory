@@ -26,13 +26,7 @@
 					},
 					"dataset": {
 						"referenceName": "ds_sink_table",
-						"type": "DatasetReference",
-						"parameters": {
-							"ds_sink_table": {
-								"value": "@pipeline().parameters.sink_table",
-								"type": "Expression"
-							}
-						}
+						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
 				}

@@ -1,5 +1,5 @@
 {
-	"name": "pipeline1",
+	"name": "Upsert_Demo_Pipeline",
 	"properties": {
 		"activities": [
 			{
@@ -53,7 +53,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * from source.Orders where updated_at > @{activity('Lookup1').output.firstRow.MaxLastModifiedDate}",
+							"value": "SELECT * from source.Orders where updated_at > '@{activity('Lookup1').output.firstRow.MaxLastModifiedDate}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",

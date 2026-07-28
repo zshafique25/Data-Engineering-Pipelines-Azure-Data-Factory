@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT coalesce(MAX(updated_at), '1900-01-01 00:00:00') as MaxLastModifiedDate from @{pipeline().parameters.sink_schema}.@{pipeline().parameters.sink_table}\n",
+							"value": "SELECT coalesce(MAX(updated_at), '1900-01-01 00:00:00') as MaxLastModifiedDate from target.Orders\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -54,7 +54,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * from @{pipeline().parameters.source_schema}.@{pipeline().parameters.source_table} where updated_at > @{activity('Lookup_last_updtaed').output.firstRow.MaxLastModifiedDate}",
+							"value": "SELECT * from source.Orders where updated_at > @{activity('Lookup_last_updtaed').output.value[0].MaxLastModifiedDate}",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -96,24 +96,6 @@
 				]
 			}
 		],
-		"parameters": {
-			"source_schema": {
-				"type": "string",
-				"defaultValue": "source"
-			},
-			"source_table": {
-				"type": "string",
-				"defaultValue": "Orders"
-			},
-			"sink_schema": {
-				"type": "string",
-				"defaultValue": "target"
-			},
-			"sink_table": {
-				"type": "string",
-				"defaultValue": "Orders"
-			}
-		},
 		"annotations": []
 	}
 }

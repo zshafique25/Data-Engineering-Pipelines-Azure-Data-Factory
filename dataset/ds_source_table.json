@@ -1,0 +1,71 @@
+{
+	"name": "ds_source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_database",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_source_schema": {
+				"type": "string"
+			},
+			"ds_source_table": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "order_id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "customer_name",
+				"type": "varchar"
+			},
+			{
+				"name": "product_name",
+				"type": "varchar"
+			},
+			{
+				"name": "quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "price",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "order_date",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "created_at",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "updated_at",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ds_source_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().ds_source_table",
+				"type": "Expression"
+			}
+		}
+	}
+}

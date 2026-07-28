@@ -18,7 +18,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT coalesce(MAX(updated_at), '1900-01-01 00:00:00') as MaxLastModifiedDate from @{pipeline().parameters.sink_schema}.@{pipeline().parameters.sink_table}",
+							"value": "SELECT coalesce(MAX(updated_at), '1900-01-01 00:00:00') as MaxLastModifiedDate from @{pipeline().parameters.sink_schema}.@{pipeline().parameters.sink_table}\n",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -28,8 +28,8 @@
 						"referenceName": "ds_sink_table",
 						"type": "DatasetReference",
 						"parameters": {
-							"ds_sink_schema": {
-								"value": "@pipeline().parameters.sink_schema",
+							"ds_sink_table": {
+								"value": "@pipeline().parameters.sink_table",
 								"type": "Expression"
 							}
 						}
@@ -70,9 +70,9 @@
 						"type": "AzureSqlSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
-							"useTempDB": false,
+							"useTempDB": true,
 							"keys": [
-								""
+								"order_id"
 							]
 						},
 						"sqlWriterUseTableLock": false,
@@ -97,17 +97,7 @@
 				"outputs": [
 					{
 						"referenceName": "ds_sink_table",
-						"type": "DatasetReference",
-						"parameters": {
-							"ds_sink_schema": {
-								"value": "@pipeline().parameters.sink_schema",
-								"type": "Expression"
-							},
-							"ds_sink_table": {
-								"value": "@pipeline().parameters.sink_table",
-								"type": "Expression"
-							}
-						}
+						"type": "DatasetReference"
 					}
 				]
 			}

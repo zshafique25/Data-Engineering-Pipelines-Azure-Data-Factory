@@ -58,14 +58,8 @@
 			}
 		],
 		"typeProperties": {
-			"schema": {
-				"value": "@dataset().ds_source_schema",
-				"type": "Expression"
-			},
-			"table": {
-				"value": "@dataset().ds_source_table",
-				"type": "Expression"
-			}
+			"schema": "source",
+			"table": "Orders"
 		}
 	}
 }

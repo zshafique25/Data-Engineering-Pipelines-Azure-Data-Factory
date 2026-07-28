@@ -28,7 +28,7 @@
 						"referenceName": "ds_sink_table",
 						"type": "DatasetReference"
 					},
-					"firstRowOnly": false
+					"firstRowOnly": true
 				}
 			},
 			{
@@ -54,7 +54,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * from source.Orders where updated_at > @{activity('Lookup_last_updtaed').output.value[0].MaxLastModifiedDate}",
+							"value": "SELECT * from source.Orders where updated_at > @{activity('Lookup_last_updtaed').output.firstRow.MaxLastModifiedDate}",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",

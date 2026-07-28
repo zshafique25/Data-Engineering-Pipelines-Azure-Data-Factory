@@ -1,0 +1,18 @@
+{
+	"name": "ds_http_orders",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_http",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": "zshafique25/Adventure-Works-Data-Engineering-Project/refs/heads/master/Orders/orders.json"
+			}
+		},
+		"schema": {}
+	}
+}

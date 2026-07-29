@@ -1651,7 +1651,7 @@
 								"requestMethod": "GET",
 								"additionalHeaders": {
 									"Authorization": {
-										"value": "@concat('Bearer ',activity('Get_Bearer_Token').output.data.token)",
+										"value": "@concat('Bearer ',activity('Get_Bearer_Token').output.Data.Token)",
 										"type": "Expression"
 									}
 								},

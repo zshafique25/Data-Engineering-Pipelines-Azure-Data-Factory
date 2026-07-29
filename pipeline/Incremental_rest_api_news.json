@@ -13,7 +13,16 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": [],
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "@{concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy'),'&time_period_max=',formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy'),'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')}"
+					},
+					{
+						"name": "Destination",
+						"value": "raw-data/@{concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))}/@{concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')}"
+					}
+				],
 				"typeProperties": {
 					"source": {
 						"type": "RestSource",

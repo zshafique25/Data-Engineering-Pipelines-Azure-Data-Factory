@@ -24,11 +24,36 @@
 							"supportRFC5988": "true"
 						}
 					},
+					"sink": {
+						"type": "JsonSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "JsonWriteSettings"
+						}
+					},
 					"enableStaging": false
 				},
 				"inputs": [
 					{
 						"referenceName": "ds_inc_rest_news",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_param_startdate": {
+								"value": "@formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy')",
+								"type": "Expression"
+							},
+							"ds_param_enddate": {
+								"value": "@formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_inc_rest_json",
 						"type": "DatasetReference"
 					}
 				]

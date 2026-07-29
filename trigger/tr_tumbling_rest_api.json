@@ -1,0 +1,29 @@
+{
+	"name": "tr_tumbling_rest_api",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipeline": {
+			"pipelineReference": {
+				"referenceName": "Incremental_rest_api_news",
+				"type": "PipelineReference"
+			},
+			"parameters": {
+				"pl_param_windowstarttime": "@trigger().outputs.windowStartTime",
+				"pl_param_windowendtime": "@trigger().outputs.windowEndTime"
+			}
+		},
+		"type": "TumblingWindowTrigger",
+		"typeProperties": {
+			"frequency": "Hour",
+			"interval": 24,
+			"startTime": "2026-07-01T00:00:00Z",
+			"delay": "00:00:00",
+			"maxConcurrency": 50,
+			"retryPolicy": {
+				"intervalInSeconds": 30
+			},
+			"dependsOn": []
+		}
+	}
+}

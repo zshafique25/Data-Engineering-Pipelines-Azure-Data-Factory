@@ -1,0 +1,180 @@
+{
+	"name": "ds_inc_rest_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_datalake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))",
+					"type": "Expression"
+				},
+				"fileSystem": "raw-data"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"search_metadata": {
+					"type": "object",
+					"properties": {
+						"id": {
+							"type": "string"
+						},
+						"status": {
+							"type": "string"
+						},
+						"created_at": {
+							"type": "string"
+						},
+						"request_time_taken": {
+							"type": "number"
+						},
+						"parsing_time_taken": {
+							"type": "number"
+						},
+						"total_time_taken": {
+							"type": "number"
+						},
+						"request_url": {
+							"type": "string"
+						},
+						"html_url": {
+							"type": "string"
+						},
+						"json_url": {
+							"type": "string"
+						}
+					}
+				},
+				"search_parameters": {
+					"type": "object",
+					"properties": {
+						"engine": {
+							"type": "string"
+						},
+						"q": {
+							"type": "string"
+						},
+						"device": {
+							"type": "string"
+						},
+						"hl": {
+							"type": "string"
+						},
+						"gl": {
+							"type": "string"
+						}
+					}
+				},
+				"search_information": {
+					"type": "object",
+					"properties": {
+						"query_displayed": {
+							"type": "string"
+						},
+						"total_results": {
+							"type": "integer"
+						},
+						"time_taken_displayed": {
+							"type": "number"
+						},
+						"detected_location": {
+							"type": "string"
+						},
+						"has_no_results_for": {
+							"type": "boolean"
+						}
+					}
+				},
+				"organic_results": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"position": {
+								"type": "integer"
+							},
+							"title": {
+								"type": "string"
+							},
+							"link": {
+								"type": "string"
+							},
+							"source": {
+								"type": "string"
+							},
+							"date": {
+								"type": "string"
+							},
+							"iso_date": {
+								"type": "string"
+							},
+							"snippet": {
+								"type": "string"
+							},
+							"favicon": {
+								"type": "string"
+							},
+							"thumbnail": {
+								"type": "string"
+							}
+						}
+					}
+				},
+				"pagination": {
+					"type": "object",
+					"properties": {
+						"current": {
+							"type": "integer"
+						},
+						"next": {
+							"type": "string"
+						},
+						"other_pages": {
+							"type": "object",
+							"properties": {
+								"2": {
+									"type": "string"
+								},
+								"3": {
+									"type": "string"
+								},
+								"4": {
+									"type": "string"
+								},
+								"5": {
+									"type": "string"
+								},
+								"6": {
+									"type": "string"
+								},
+								"7": {
+									"type": "string"
+								},
+								"8": {
+									"type": "string"
+								},
+								"9": {
+									"type": "string"
+								},
+								"10": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

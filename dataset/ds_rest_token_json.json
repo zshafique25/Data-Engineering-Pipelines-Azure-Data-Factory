@@ -1,0 +1,23 @@
+{
+	"name": "ds_rest_token_json",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_datalake",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat('customers_',formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.json')",
+					"type": "Expression"
+				},
+				"folderPath": "customer",
+				"fileSystem": "rawdata"
+			}
+		},
+		"schema": {}
+	}
+}

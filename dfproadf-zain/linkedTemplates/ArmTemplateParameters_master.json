@@ -26,6 +26,12 @@
 		"ls_datalake_properties_typeProperties_url": {
 			"value": "https://dfprostorage.dfs.core.windows.net/"
 		},
+		"ls_http_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/"
+		},
+		"ls_rest_api_properties_typeProperties_url": {
+			"value": "https://www.searchapi.io/api/v1"
+		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"value": "source"
 		},
@@ -50,11 +56,11 @@
 		"trigger_events_properties_typeProperties_scope": {
 			"value": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
 		},
-		"ls_http_properties_typeProperties_url": {
-			"value": "https://raw.githubusercontent.com/"
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"value": "@trigger().outputs.windowStartTime"
 		},
-		"ls_rest_api_properties_typeProperties_url": {
-			"value": "https://www.searchapi.io/api/v1"
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
+			"value": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"value": ""

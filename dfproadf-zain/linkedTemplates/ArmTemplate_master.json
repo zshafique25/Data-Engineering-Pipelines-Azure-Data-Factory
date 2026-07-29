@@ -35,6 +35,14 @@
 			"type": "string",
 			"defaultValue": "https://dfprostorage.dfs.core.windows.net/"
 		},
+		"ls_http_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://raw.githubusercontent.com/"
+		},
+		"ls_rest_api_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://www.searchapi.io/api/v1"
+		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"type": "string",
 			"defaultValue": "source"
@@ -67,13 +75,13 @@
 			"type": "string",
 			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
 		},
-		"ls_http_properties_typeProperties_url": {
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
 			"type": "string",
-			"defaultValue": "https://raw.githubusercontent.com/"
+			"defaultValue": "@trigger().outputs.windowStartTime"
 		},
-		"ls_rest_api_properties_typeProperties_url": {
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
 			"type": "string",
-			"defaultValue": "https://www.searchapi.io/api/v1"
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"type": "string",
@@ -181,6 +189,12 @@
 					},
 					"trigger_events_properties_typeProperties_scope": {
 						"value": "[parameters('trigger_events_properties_typeProperties_scope')]"
+					},
+					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
+						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]"
+					},
+					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
+						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
 					},
 					"schedule_properties_Scheduled_parameters_schema": {
 						"value": "[parameters('schedule_properties_Scheduled_parameters_schema')]"

@@ -82,6 +82,14 @@
 		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
 			"type": "string",
 			"defaultValue": "@trigger().outputs.windowEndTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -3993,7 +4001,16 @@
 							"secureOutput": false,
 							"secureInput": false
 						},
-						"userProperties": [],
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "@{concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy'),'&time_period_max=',formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy'),'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')}"
+							},
+							{
+								"name": "Destination",
+								"value": "raw-data/@{concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))}/@{concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')}"
+							}
+						],
 						"typeProperties": {
 							"source": {
 								"type": "RestSource",
@@ -4280,7 +4297,7 @@
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"runtimeState": "Started",
+				"runtimeState": "Stopped",
 				"pipeline": {
 					"pipelineReference": {
 						"referenceName": "Incremental_rest_api_news",
@@ -4289,6 +4306,40 @@
 					"parameters": {
 						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]",
 						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 24,
+					"startTime": "2026-07-01T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Incremental_rest_api_news')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_tumbling_rest_api_2')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "Incremental_rest_api_news",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime')]",
+						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime')]"
 					}
 				},
 				"type": "TumblingWindowTrigger",

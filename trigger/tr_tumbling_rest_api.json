@@ -2,7 +2,7 @@
 	"name": "tr_tumbling_rest_api",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Stopped",
+		"runtimeState": "Started",
 		"pipeline": {
 			"pipelineReference": {
 				"referenceName": "Incremental_rest_api_news",

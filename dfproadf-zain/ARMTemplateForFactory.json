@@ -43,6 +43,10 @@
 			"type": "string",
 			"defaultValue": "https://www.searchapi.io/api/v1"
 		},
+		"ls_rest_token_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://www.quickpickdeal.com/api/Customer/GetAllCustomers"
+		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"type": "string",
 			"defaultValue": "source"
@@ -54,6 +58,22 @@
 		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
 			"type": "string",
 			"defaultValue": "source"
+		},
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
 			"type": "string",
@@ -74,22 +94,6 @@
 		"trigger_events_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
-		},
-		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
-		},
-		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
-		},
-		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
-		},
-		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
 		}
 	},
 	"variables": {
@@ -251,6 +255,97 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_source_csv')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sink_csv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Incremental_rest_api_news')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [
+							{
+								"name": "Source",
+								"value": "@{concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy'),'&time_period_max=',formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy'),'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')}"
+							},
+							{
+								"name": "Destination",
+								"value": "raw-data/@{concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))}/@{concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')}"
+							}
+						],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_inc_rest_news",
+								"type": "DatasetReference",
+								"parameters": {
+									"ds_param_startdate": {
+										"value": "@formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy')",
+										"type": "Expression"
+									},
+									"ds_param_enddate": {
+										"value": "@formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy')",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_inc_rest_json",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"pl_param_windowstarttime": {
+						"type": "string"
+					},
+					"pl_param_windowendtime": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_inc_rest_news')]",
+				"[concat(variables('factoryId'), '/datasets/ds_inc_rest_json')]"
 			]
 		},
 		{
@@ -1346,6 +1441,102 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_rest_news')]",
 				"[concat(variables('factoryId'), '/datasets/ds_rest_json')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Rest_api_token')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get_Bearer_Token",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://www.quickpickdeal.com/api/Auth/GetBearerToken"
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get_Bearer_Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "@concat('Bearer ',activity('Get_Bearer_Token').output.data.token)",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"supportRFC5988": "true"
+								}
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_rest_token",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_rest_token_json",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_rest_token')]",
+				"[concat(variables('factoryId'), '/datasets/ds_rest_token_json')]"
 			]
 		},
 		{
@@ -3341,6 +3532,222 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_inc_rest_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))",
+							"type": "Expression"
+						},
+						"fileSystem": "raw-data"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"search_metadata": {
+							"type": "object",
+							"properties": {
+								"id": {
+									"type": "string"
+								},
+								"status": {
+									"type": "string"
+								},
+								"created_at": {
+									"type": "string"
+								},
+								"request_time_taken": {
+									"type": "number"
+								},
+								"parsing_time_taken": {
+									"type": "number"
+								},
+								"total_time_taken": {
+									"type": "number"
+								},
+								"request_url": {
+									"type": "string"
+								},
+								"html_url": {
+									"type": "string"
+								},
+								"json_url": {
+									"type": "string"
+								}
+							}
+						},
+						"search_parameters": {
+							"type": "object",
+							"properties": {
+								"engine": {
+									"type": "string"
+								},
+								"q": {
+									"type": "string"
+								},
+								"device": {
+									"type": "string"
+								},
+								"hl": {
+									"type": "string"
+								},
+								"gl": {
+									"type": "string"
+								}
+							}
+						},
+						"search_information": {
+							"type": "object",
+							"properties": {
+								"query_displayed": {
+									"type": "string"
+								},
+								"total_results": {
+									"type": "integer"
+								},
+								"time_taken_displayed": {
+									"type": "number"
+								},
+								"detected_location": {
+									"type": "string"
+								},
+								"has_no_results_for": {
+									"type": "boolean"
+								}
+							}
+						},
+						"organic_results": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"position": {
+										"type": "integer"
+									},
+									"title": {
+										"type": "string"
+									},
+									"link": {
+										"type": "string"
+									},
+									"source": {
+										"type": "string"
+									},
+									"date": {
+										"type": "string"
+									},
+									"iso_date": {
+										"type": "string"
+									},
+									"snippet": {
+										"type": "string"
+									},
+									"favicon": {
+										"type": "string"
+									},
+									"thumbnail": {
+										"type": "string"
+									}
+								}
+							}
+						},
+						"pagination": {
+							"type": "object",
+							"properties": {
+								"current": {
+									"type": "integer"
+								},
+								"next": {
+									"type": "string"
+								},
+								"other_pages": {
+									"type": "object",
+									"properties": {
+										"2": {
+											"type": "string"
+										},
+										"3": {
+											"type": "string"
+										},
+										"4": {
+											"type": "string"
+										},
+										"5": {
+											"type": "string"
+										},
+										"6": {
+											"type": "string"
+										},
+										"7": {
+											"type": "string"
+										},
+										"8": {
+											"type": "string"
+										},
+										"9": {
+											"type": "string"
+										},
+										"10": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_inc_rest_news')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_rest_api",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"ds_param_startdate": {
+						"type": "string"
+					},
+					"ds_param_enddate": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {
+					"relativeUrl": {
+						"value": "@concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',dataset().ds_param_startdate,'&time_period_max=',dataset().ds_param_enddate,'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')",
+						"type": "Expression"
+					}
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_rest_api')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_meta')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -3478,6 +3885,52 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_rest_api')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_token')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_rest_token",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_rest_token')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_token_json')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@concat('customers_',formatDateTime(utcNow(),'yyyyMMddHHmmss'),'.json')",
+							"type": "Expression"
+						},
+						"folderPath": "customer",
+						"fileSystem": "rawdata"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
 			]
 		},
 		{
@@ -3774,6 +4227,21 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_rest_token')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('ls_rest_token_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/schedule')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
@@ -3825,6 +4293,74 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/Scheduled')]",
 				"[concat(variables('factoryId'), '/pipelines/Scheduled_Multitables')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_tumbling_rest_api')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "Incremental_rest_api_news",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]",
+						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 24,
+					"startTime": "2026-07-01T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Incremental_rest_api_news')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_tumbling_rest_api_2')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipeline": {
+					"pipelineReference": {
+						"referenceName": "Incremental_rest_api_news",
+						"type": "PipelineReference"
+					},
+					"parameters": {
+						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime')]",
+						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime')]"
+					}
+				},
+				"type": "TumblingWindowTrigger",
+				"typeProperties": {
+					"frequency": "Hour",
+					"interval": 24,
+					"startTime": "2026-07-01T00:00:00Z",
+					"delay": "00:00:00",
+					"maxConcurrency": 50,
+					"retryPolicy": {
+						"intervalInSeconds": 30
+					},
+					"dependsOn": []
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/Incremental_rest_api_news')]"
 			]
 		},
 		{
@@ -3982,381 +4518,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_csv_dynamic')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Incremental_rest_api_news')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [
-							{
-								"name": "Source",
-								"value": "@{concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy'),'&time_period_max=',formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy'),'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')}"
-							},
-							{
-								"name": "Destination",
-								"value": "raw-data/@{concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))}/@{concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')}"
-							}
-						],
-						"typeProperties": {
-							"source": {
-								"type": "RestSource",
-								"httpRequestTimeout": "00:01:40",
-								"requestInterval": "00.00:00:00.010",
-								"requestMethod": "GET",
-								"paginationRules": {
-									"supportRFC5988": "true"
-								}
-							},
-							"sink": {
-								"type": "JsonSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "JsonWriteSettings"
-								}
-							},
-							"enableStaging": false
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_inc_rest_news",
-								"type": "DatasetReference",
-								"parameters": {
-									"ds_param_startdate": {
-										"value": "@formatDateTime(pipeline().parameters.pl_param_windowstarttime,'MM/dd/yyyy')",
-										"type": "Expression"
-									},
-									"ds_param_enddate": {
-										"value": "@formatDateTime(pipeline().parameters.pl_param_windowendtime,'MM/dd/yyyy')",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_inc_rest_json",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"parameters": {
-					"pl_param_windowstarttime": {
-						"type": "string"
-					},
-					"pl_param_windowendtime": {
-						"type": "string"
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_inc_rest_news')]",
-				"[concat(variables('factoryId'), '/datasets/ds_inc_rest_json')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_inc_rest_news')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_rest_api",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"ds_param_startdate": {
-						"type": "string"
-					},
-					"ds_param_enddate": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "RestResource",
-				"typeProperties": {
-					"relativeUrl": {
-						"value": "@concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',dataset().ds_param_startdate,'&time_period_max=',dataset().ds_param_enddate,'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')",
-						"type": "Expression"
-					}
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_rest_api')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ds_inc_rest_json')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "ls_datalake",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Json",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@concat('latest-pak-news_',formatDateTime(utcNow(),'yyyyMMdd_HHmmss'),'.json')",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@concat('api-data/news-api/incremental/',formatDateTime(utcNow(),'yyyy/MM/dd'))",
-							"type": "Expression"
-						},
-						"fileSystem": "raw-data"
-					}
-				},
-				"schema": {
-					"type": "object",
-					"properties": {
-						"search_metadata": {
-							"type": "object",
-							"properties": {
-								"id": {
-									"type": "string"
-								},
-								"status": {
-									"type": "string"
-								},
-								"created_at": {
-									"type": "string"
-								},
-								"request_time_taken": {
-									"type": "number"
-								},
-								"parsing_time_taken": {
-									"type": "number"
-								},
-								"total_time_taken": {
-									"type": "number"
-								},
-								"request_url": {
-									"type": "string"
-								},
-								"html_url": {
-									"type": "string"
-								},
-								"json_url": {
-									"type": "string"
-								}
-							}
-						},
-						"search_parameters": {
-							"type": "object",
-							"properties": {
-								"engine": {
-									"type": "string"
-								},
-								"q": {
-									"type": "string"
-								},
-								"device": {
-									"type": "string"
-								},
-								"hl": {
-									"type": "string"
-								},
-								"gl": {
-									"type": "string"
-								}
-							}
-						},
-						"search_information": {
-							"type": "object",
-							"properties": {
-								"query_displayed": {
-									"type": "string"
-								},
-								"total_results": {
-									"type": "integer"
-								},
-								"time_taken_displayed": {
-									"type": "number"
-								},
-								"detected_location": {
-									"type": "string"
-								},
-								"has_no_results_for": {
-									"type": "boolean"
-								}
-							}
-						},
-						"organic_results": {
-							"type": "array",
-							"items": {
-								"type": "object",
-								"properties": {
-									"position": {
-										"type": "integer"
-									},
-									"title": {
-										"type": "string"
-									},
-									"link": {
-										"type": "string"
-									},
-									"source": {
-										"type": "string"
-									},
-									"date": {
-										"type": "string"
-									},
-									"iso_date": {
-										"type": "string"
-									},
-									"snippet": {
-										"type": "string"
-									},
-									"favicon": {
-										"type": "string"
-									},
-									"thumbnail": {
-										"type": "string"
-									}
-								}
-							}
-						},
-						"pagination": {
-							"type": "object",
-							"properties": {
-								"current": {
-									"type": "integer"
-								},
-								"next": {
-									"type": "string"
-								},
-								"other_pages": {
-									"type": "object",
-									"properties": {
-										"2": {
-											"type": "string"
-										},
-										"3": {
-											"type": "string"
-										},
-										"4": {
-											"type": "string"
-										},
-										"5": {
-											"type": "string"
-										},
-										"6": {
-											"type": "string"
-										},
-										"7": {
-											"type": "string"
-										},
-										"8": {
-											"type": "string"
-										},
-										"9": {
-											"type": "string"
-										},
-										"10": {
-											"type": "string"
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/tr_tumbling_rest_api')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "Incremental_rest_api_news",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]",
-						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 24,
-					"startTime": "2026-07-01T00:00:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Incremental_rest_api_news')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/tr_tumbling_rest_api_2')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipeline": {
-					"pipelineReference": {
-						"referenceName": "Incremental_rest_api_news",
-						"type": "PipelineReference"
-					},
-					"parameters": {
-						"pl_param_windowstarttime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime')]",
-						"pl_param_windowendtime": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime')]"
-					}
-				},
-				"type": "TumblingWindowTrigger",
-				"typeProperties": {
-					"frequency": "Hour",
-					"interval": 24,
-					"startTime": "2026-07-01T00:00:00Z",
-					"delay": "00:00:00",
-					"maxConcurrency": 50,
-					"retryPolicy": {
-						"intervalInSeconds": 30
-					},
-					"dependsOn": []
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/Incremental_rest_api_news')]"
 			]
 		}
 	]

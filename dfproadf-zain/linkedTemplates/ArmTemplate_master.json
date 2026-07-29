@@ -43,6 +43,10 @@
 			"type": "string",
 			"defaultValue": "https://www.searchapi.io/api/v1"
 		},
+		"ls_rest_token_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://www.quickpickdeal.com/api/Customer/GetAllCustomers"
+		},
 		"schedule_properties_Scheduled_parameters_schema": {
 			"type": "string",
 			"defaultValue": "source"
@@ -54,6 +58,22 @@
 		"schedule_properties_Scheduled_Multitables_parameters_schema_name": {
 			"type": "string",
 			"defaultValue": "source"
+		},
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowStartTime"
+		},
+		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
+			"type": "string",
+			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"trigger2_properties_pipeline_parameters_windowstartertime": {
 			"type": "string",
@@ -74,22 +94,6 @@
 		"trigger_events_properties_typeProperties_scope": {
 			"type": "string",
 			"defaultValue": "/subscriptions/a7add2b6-7c77-4e76-a5f6-9d61f70d8119/resourceGroups/DataFactoryPro/providers/Microsoft.Storage/storageAccounts/dfprostorage"
-		},
-		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
-		},
-		"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
-		},
-		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowStartTime"
-		},
-		"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
-			"type": "string",
-			"defaultValue": "@trigger().outputs.windowEndTime"
 		},
 		"containerUri": {
 			"type": "string",
@@ -144,6 +148,9 @@
 					},
 					"ls_rest_api_properties_typeProperties_url": {
 						"value": "[parameters('ls_rest_api_properties_typeProperties_url')]"
+					},
+					"ls_rest_token_properties_typeProperties_url": {
+						"value": "[parameters('ls_rest_token_properties_typeProperties_url')]"
 					}
 				}
 			},
@@ -183,6 +190,18 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
+						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]"
+					},
+					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
+						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
+					},
+					"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
+						"value": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime')]"
+					},
+					"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
+						"value": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime')]"
+					},
 					"trigger2_properties_pipeline_parameters_windowstartertime": {
 						"value": "[parameters('trigger2_properties_pipeline_parameters_windowstartertime')]"
 					},
@@ -197,18 +216,6 @@
 					},
 					"trigger_events_properties_typeProperties_scope": {
 						"value": "[parameters('trigger_events_properties_typeProperties_scope')]"
-					},
-					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime": {
-						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowstarttime')]"
-					},
-					"tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime": {
-						"value": "[parameters('tr_tumbling_rest_api_properties_pipeline_parameters_pl_param_windowendtime')]"
-					},
-					"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime": {
-						"value": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowstarttime')]"
-					},
-					"tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime": {
-						"value": "[parameters('tr_tumbling_rest_api_2_properties_pipeline_parameters_pl_param_windowendtime')]"
 					},
 					"schedule_properties_Scheduled_parameters_schema": {
 						"value": "[parameters('schedule_properties_Scheduled_parameters_schema')]"

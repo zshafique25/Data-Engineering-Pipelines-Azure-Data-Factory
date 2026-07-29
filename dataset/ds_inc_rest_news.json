@@ -1,0 +1,26 @@
+{
+	"name": "ds_inc_rest_news",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_rest_api",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"ds_param_startdate": {
+				"type": "string"
+			},
+			"ds_param_enddate": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat('search?engine=google_news&q=latest+news&gl=pk&time_period_min=',dataset().ds_param_startdate,'&time_period_max=',dataset().ds_param_enddate,'&api_key=f4oCuq2y3HPyeE1B8wJdGum1')",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
